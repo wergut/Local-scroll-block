@@ -83,13 +83,11 @@ function scrollToSection(index) {
     contentButton.classList.remove('active');
     buttons[previousIndex].classList.remove('active');
 
-    // Показываем новые элементы БЕЗ анимации (чтобы не было мигания)
     updateUI(false);
 
-    // Выполняем скролл
     const scrollSectionRect = scrollSection.getBoundingClientRect();
     const scrollSectionTop = scrollSectionRect.top + window.scrollY;
-    const sectionHeight = window.innerHeight;
+    const sectionHeight = window.innerHeight * 0.4;
 
     let targetScroll;
     if (window.innerWidth <= 990) {
