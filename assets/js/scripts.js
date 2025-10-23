@@ -227,9 +227,23 @@ function getCurrentSectionIndex() {
 
     const viewportCenter = scrollY + window.innerHeight / 2;
     const relativePosition = viewportCenter - scrollSectionTop;
-    const index = Math.floor(relativePosition / (scrollSectionHeight / MATERIAL_SECTIONS.length));
+    const sectionHeight = scrollSectionHeight / MATERIAL_SECTIONS.length;
 
-    return Math.min(MATERIAL_SECTIONS.length - 1, Math.max(0, index));
+    // Вычисляем точный прогресс внутри текущей секции
+    const progressInSection = (relativePosition % sectionHeight) / sectionHeight;
+
+    // Определяем базовый индекс
+    let baseIndex = Math.floor(relativePosition / sectionHeight);
+    baseIndex = Math.min(MATERIAL_SECTIONS.length - 1, Math.max(0, baseIndex));
+
+    // Решаем, нужно ли переключаться на следующую секцию
+    if (progressInSection > 0.7 && baseIndex < MATERIAL_SECTIONS.length - 1) {
+        return baseIndex + 1;
+    } else if (progressInSection < 0.3 && baseIndex > 0) {
+        return baseIndex - 1;
+    }
+
+    return baseIndex;
 }
 
 function updateUI(withAnimation = true) {
