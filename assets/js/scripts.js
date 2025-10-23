@@ -77,12 +77,30 @@ function handleButtonClick(newIndex) {
     animateImages(direction);
     updateContent();
     scrollToSection(activeIndex);
+
     setTimeout(() => {
         isAnimating = false;
         setTimeout(() => {
             ignoreScroll = false;
         }, 500);
     }, 800);
+}
+
+function handleScrollChange(newIndex) {
+    if (isAnimating || newIndex === activeIndex) return;
+
+    isAnimating = true;
+    previousIndex = activeIndex;
+    activeIndex = newIndex;
+
+    const direction = newIndex > previousIndex ? 'next' : 'prev';
+    animateImages(direction);
+    updateContent();
+    // НЕТ scrollToSection - не дергаем скролл!
+
+    setTimeout(() => {
+        isAnimating = false;
+    }, 600);
 }
 
 function getDirection(oldIndex, newIndex) {
@@ -150,7 +168,6 @@ function updateContent() {
     const section = MATERIAL_SECTIONS[activeIndex];
 
     stickyPanel.style.backgroundColor = section.bgColor;
-
     contentTitle.textContent = section.title;
     contentText.textContent = section.text;
     contentButton.textContent = section.buttonText;
@@ -220,7 +237,6 @@ function updateUI(withAnimation = true) {
     const section = MATERIAL_SECTIONS[activeIndex];
 
     stickyPanel.style.backgroundColor = section.bgColor;
-
     contentTitle.textContent = section.title;
     contentText.textContent = section.text;
     contentButton.textContent = section.buttonText;
@@ -266,7 +282,7 @@ function onScroll() {
 
         const newIndex = getCurrentSectionIndex();
         if (newIndex !== activeIndex) {
-            handleButtonClick(newIndex);
+            handleScrollChange(newIndex); // Используем функцию БЕЗ скролла
         }
     }, 100);
 }
