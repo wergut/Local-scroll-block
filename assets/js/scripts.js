@@ -17,7 +17,6 @@ function initUI() {
     sidebar.innerHTML = '';
     imageArea.innerHTML = '';
 
-    // Создаем кнопки навигации
     MATERIAL_SECTIONS.forEach((section, i) => {
         const btn = document.createElement('button');
         const span = document.createElement('span');
@@ -29,13 +28,12 @@ function initUI() {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             if (isAnimating) return;
-            scrollToSection(i); // Используем индекс напрямую
+            scrollToSection(i);
         });
 
         sidebar.appendChild(btn);
     });
 
-    // Создаем картинки
     MATERIAL_SECTIONS.forEach((section, i) => {
         const img = document.createElement('img');
         img.className = 'section-image';
@@ -53,7 +51,6 @@ function initUI() {
 
     buttons = Array.from(sidebar.querySelectorAll('button'));
 
-    // Добавляем активный класс для первого контента
     setTimeout(() => {
         contentTitle.classList.add('active');
         contentText.classList.add('active');
@@ -70,11 +67,9 @@ function scrollToSection(index) {
 
     isAnimating = true;
 
-    // Сразу обновляем активный индекс и UI
     const previousIndex = activeIndex;
     activeIndex = index;
 
-    // Скрываем предыдущие элементы
     if (images[previousIndex]) {
         images[previousIndex].classList.remove('active');
     }
@@ -103,10 +98,9 @@ function scrollToSection(index) {
         behavior: 'smooth'
     });
 
-    // Включаем анимацию только после завершения скролла
     setTimeout(() => {
         isAnimating = false;
-    }, 500); // Увеличиваем время до полного завершения скролла
+    }, 500);
 }
 
 function getCurrentSectionIndex() {
@@ -118,7 +112,6 @@ function getCurrentSectionIndex() {
     if (scrollY < scrollSectionTop) return 0;
     if (scrollY >= scrollSectionTop + scrollSectionHeight - 10) return MATERIAL_SECTIONS.length - 1;
 
-    // Простой и точный расчет по видимой области
     const viewportCenter = scrollY + window.innerHeight / 2;
     const relativePosition = viewportCenter - scrollSectionTop;
     const index = Math.floor(relativePosition / (scrollSectionHeight / MATERIAL_SECTIONS.length));
@@ -131,14 +124,12 @@ function updateUI(withAnimation = true) {
 
     stickyPanel.style.backgroundColor = section.bgColor;
 
-    // Обновляем контент
     contentTitle.textContent = section.title;
     contentText.textContent = section.text;
     contentButton.textContent = section.buttonText;
     contentButton.href = section.link;
     contentButton.setAttribute('target', '_blank');
 
-    // Обновляем активную картинку
     images.forEach((img, index) => {
         if (index === activeIndex) {
             img.classList.add('active');
@@ -147,7 +138,6 @@ function updateUI(withAnimation = true) {
         }
     });
 
-    // Обновляем активную кнопку
     buttons.forEach((btn, index) => {
         if (index === activeIndex) {
             btn.classList.add('active');
@@ -156,7 +146,6 @@ function updateUI(withAnimation = true) {
         }
     });
 
-    // Анимация появления контента (только если явно запрошена)
     if (withAnimation) {
         contentTitle.classList.remove('active');
         contentText.classList.remove('active');
@@ -179,18 +168,15 @@ function updateUI(withAnimation = true) {
 }
 
 function onScroll() {
-    // Очищаем предыдущий таймаут
     if (scrollTimeout) {
         clearTimeout(scrollTimeout);
     }
 
-    // Создаем новый таймаут - обрабатываем скролл только после его завершения
     scrollTimeout = setTimeout(() => {
         if (isAnimating) return;
 
         const newIndex = getCurrentSectionIndex();
         if (newIndex !== activeIndex) {
-            // Скрываем текущие элементы
             const currentImage = images[activeIndex];
             if (currentImage) {
                 currentImage.classList.remove('active');
@@ -203,10 +189,9 @@ function onScroll() {
             activeIndex = newIndex;
             updateUI(true);
         }
-    }, 100); // Задержка для определения завершения скролла
+    }, 100);
 }
 
-// Инициализация
 initUI();
 window.addEventListener('scroll', onScroll);
 window.addEventListener('resize', () => {
