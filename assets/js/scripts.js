@@ -96,7 +96,6 @@ function handleScrollChange(newIndex) {
     const direction = newIndex > previousIndex ? 'next' : 'prev';
     animateImages(direction);
     updateContent();
-    // НЕТ scrollToSection - не дергаем скролл!
 
     setTimeout(() => {
         isAnimating = false;
@@ -282,7 +281,7 @@ function onScroll() {
 
         const newIndex = getCurrentSectionIndex();
         if (newIndex !== activeIndex) {
-            handleScrollChange(newIndex); // Используем функцию БЕЗ скролла
+            handleScrollChange(newIndex);
         }
     }, 100);
 }
