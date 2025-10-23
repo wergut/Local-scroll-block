@@ -82,8 +82,8 @@ function handleButtonClick(newIndex) {
         isAnimating = false;
         setTimeout(() => {
             ignoreScroll = false;
-        }, 500);
-    }, 800);
+        }, 200);
+    }, 500);
 }
 
 function handleScrollChange(newIndex) {
@@ -99,18 +99,7 @@ function handleScrollChange(newIndex) {
 
     setTimeout(() => {
         isAnimating = false;
-    }, 600);
-}
-
-function getDirection(oldIndex, newIndex) {
-    const scrollDirection = window.scrollY > lastScrollY ? 'down' : 'up';
-    lastScrollY = window.scrollY;
-
-    if (scrollDirection === 'down') {
-        return 'next';
-    } else {
-        return 'prev';
-    }
+    }, 300); // ОЧЕНЬ быстро для скролла
 }
 
 function animateImages(direction) {
@@ -149,18 +138,7 @@ function animateImages(direction) {
     setTimeout(() => {
         currentImage.classList.remove('active');
         nextImage.classList.add('active');
-
-        setTimeout(() => {
-            currentImage.classList.remove(
-                'slide-out-top-pc', 'slide-out-bottom-pc',
-                'slide-out-left-mobile', 'slide-out-right-mobile'
-            );
-            nextImage.classList.remove(
-                'slide-in-top-pc', 'slide-in-bottom-pc',
-                'slide-in-left-mobile', 'slide-in-right-mobile'
-            );
-        }, 100);
-    }, 400);
+    }, 200); // ОЧЕНЬ быстро
 }
 
 function updateContent() {
@@ -181,19 +159,15 @@ function updateContent() {
         }
     });
 
-    contentTitle.classList.remove('active');
-    contentText.classList.remove('active');
-    contentButton.classList.remove('active');
+    // УБИРАЕМ анимацию контента при скролле - только мгновенное обновление
+    contentTitle.textContent = section.title;
+    contentText.textContent = section.text;
+    contentButton.textContent = section.buttonText;
+    contentButton.href = section.link;
 
-    setTimeout(() => {
-        contentTitle.classList.add('active');
-        setTimeout(() => {
-            contentText.classList.add('active');
-            setTimeout(() => {
-                contentButton.classList.add('active');
-            }, 100);
-        }, 100);
-    }, 200);
+    contentTitle.classList.add('active');
+    contentText.classList.add('active');
+    contentButton.classList.add('active');
 }
 
 function scrollToSection(index) {
@@ -227,23 +201,9 @@ function getCurrentSectionIndex() {
 
     const viewportCenter = scrollY + window.innerHeight / 2;
     const relativePosition = viewportCenter - scrollSectionTop;
-    const sectionHeight = scrollSectionHeight / MATERIAL_SECTIONS.length;
+    const index = Math.floor(relativePosition / (scrollSectionHeight / MATERIAL_SECTIONS.length));
 
-    // Вычисляем точный прогресс внутри текущей секции
-    const progressInSection = (relativePosition % sectionHeight) / sectionHeight;
-
-    // Определяем базовый индекс
-    let baseIndex = Math.floor(relativePosition / sectionHeight);
-    baseIndex = Math.min(MATERIAL_SECTIONS.length - 1, Math.max(0, baseIndex));
-
-    // Решаем, нужно ли переключаться на следующую секцию
-    if (progressInSection > 0.7 && baseIndex < MATERIAL_SECTIONS.length - 1) {
-        return baseIndex + 1;
-    } else if (progressInSection < 0.3 && baseIndex > 0) {
-        return baseIndex - 1;
-    }
-
-    return baseIndex;
+    return Math.min(MATERIAL_SECTIONS.length - 1, Math.max(0, index));
 }
 
 function updateUI(withAnimation = true) {
@@ -275,8 +235,8 @@ function updateUI(withAnimation = true) {
                 contentText.classList.add('active');
                 setTimeout(() => {
                     contentButton.classList.add('active');
-                }, 100);
-            }, 100);
+                }, 50);
+            }, 50);
         }, 50);
     } else {
         contentTitle.classList.add('active');
@@ -297,7 +257,7 @@ function onScroll() {
         if (newIndex !== activeIndex) {
             handleScrollChange(newIndex);
         }
-    }, 100);
+    }, 50); // СУПЕР быстрый отклик
 }
 
 initUI();
