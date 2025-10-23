@@ -11,6 +11,7 @@ let buttons = [];
 let images = [];
 let activeIndex = 0;
 let isAnimating = false;
+let scrollTimeout = null;
 
 function initUI() {
     sidebar.innerHTML = '';
@@ -28,9 +29,7 @@ function initUI() {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             if (isAnimating) return;
-
-            const index = parseInt(btn.dataset.index);
-            scrollToSection(index);
+            scrollToSection(i); // Используем индекс напрямую
         });
 
         sidebar.appendChild(btn);
@@ -71,19 +70,23 @@ function scrollToSection(index) {
 
     isAnimating = true;
 
-    // Сначала скрываем текущую картинку и контент
-    const currentImage = images[activeIndex];
-    if (currentImage) {
-        currentImage.classList.remove('active');
-    }
+    // Сразу обновляем активный индекс и UI
+    const previousIndex = activeIndex;
+    activeIndex = index;
 
+    // Скрываем предыдущие элементы
+    if (images[previousIndex]) {
+        images[previousIndex].classList.remove('active');
+    }
     contentTitle.classList.remove('active');
     contentText.classList.remove('active');
     contentButton.classList.remove('active');
-    buttons[activeIndex].classList.remove('active');
+    buttons[previousIndex].classList.remove('active');
 
-    activeIndex = index;
+    // Показываем новые элементы БЕЗ анимации (чтобы не было мигания)
+    updateUI(false);
 
+    // Выполняем скролл
     const scrollSectionRect = scrollSection.getBoundingClientRect();
     const scrollSectionTop = scrollSectionRect.top + window.scrollY;
     const sectionHeight = window.innerHeight;
@@ -102,10 +105,10 @@ function scrollToSection(index) {
         behavior: 'smooth'
     });
 
+    // Включаем анимацию только после завершения скролла
     setTimeout(() => {
-        updateUI(true);
         isAnimating = false;
-    }, 300);
+    }, 500); // Увеличиваем время до полного завершения скролла
 }
 
 function getCurrentSectionIndex() {
@@ -115,11 +118,12 @@ function getCurrentSectionIndex() {
     const scrollSectionHeight = scrollSectionRect.height;
 
     if (scrollY < scrollSectionTop) return 0;
-    if (scrollY >= scrollSectionTop + scrollSectionHeight) return MATERIAL_SECTIONS.length - 1;
+    if (scrollY >= scrollSectionTop + scrollSectionHeight - 10) return MATERIAL_SECTIONS.length - 1;
 
-    // Более быстрый отклик - меньший порог для смены секций
-    const progress = (scrollY - scrollSectionTop) / scrollSectionHeight;
-    let index = Math.floor(progress * MATERIAL_SECTIONS.length * 1.2);
+    // Простой и точный расчет по видимой области
+    const viewportCenter = scrollY + window.innerHeight / 2;
+    const relativePosition = viewportCenter - scrollSectionTop;
+    const index = Math.floor(relativePosition / (scrollSectionHeight / MATERIAL_SECTIONS.length));
 
     return Math.min(MATERIAL_SECTIONS.length - 1, Math.max(0, index));
 }
@@ -154,8 +158,12 @@ function updateUI(withAnimation = true) {
         }
     });
 
-    // Анимация появления контента
+    // Анимация появления контента (только если явно запрошена)
     if (withAnimation) {
+        contentTitle.classList.remove('active');
+        contentText.classList.remove('active');
+        contentButton.classList.remove('active');
+
         setTimeout(() => {
             contentTitle.classList.add('active');
             setTimeout(() => {
@@ -172,31 +180,35 @@ function updateUI(withAnimation = true) {
     }
 }
 
-let ticking = false;
 function onScroll() {
-    if (!ticking && !isAnimating) {
-        requestAnimationFrame(() => {
-            const newIndex = getCurrentSectionIndex();
-            if (newIndex !== activeIndex) {
-                // Скрываем текущие элементы
-                const currentImage = images[activeIndex];
-                if (currentImage) {
-                    currentImage.classList.remove('active');
-                }
-                contentTitle.classList.remove('active');
-                contentText.classList.remove('active');
-                contentButton.classList.remove('active');
-                buttons[activeIndex].classList.remove('active');
-
-                activeIndex = newIndex;
-                updateUI(true);
-            }
-            ticking = false;
-        });
-        ticking = true;
+    // Очищаем предыдущий таймаут
+    if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
     }
+
+    // Создаем новый таймаут - обрабатываем скролл только после его завершения
+    scrollTimeout = setTimeout(() => {
+        if (isAnimating) return;
+
+        const newIndex = getCurrentSectionIndex();
+        if (newIndex !== activeIndex) {
+            // Скрываем текущие элементы
+            const currentImage = images[activeIndex];
+            if (currentImage) {
+                currentImage.classList.remove('active');
+            }
+            contentTitle.classList.remove('active');
+            contentText.classList.remove('active');
+            contentButton.classList.remove('active');
+            buttons[activeIndex].classList.remove('active');
+
+            activeIndex = newIndex;
+            updateUI(true);
+        }
+    }, 100); // Задержка для определения завершения скролла
 }
 
+// Инициализация
 initUI();
 window.addEventListener('scroll', onScroll);
 window.addEventListener('resize', () => {
