@@ -14,7 +14,7 @@ let previousIndex = 0;
 let isAnimating = false;
 let scrollTimeout = null;
 let lastScrollY = 0;
-let ignoreScroll = false; // Флаг для игнорирования скролла
+let ignoreScroll = false;
 
 function initUI() {
     sidebar.innerHTML = '';
@@ -69,26 +69,16 @@ function handleButtonClick(newIndex) {
     if (isAnimating || newIndex === activeIndex) return;
 
     isAnimating = true;
-    ignoreScroll = true; // Игнорируем скролл
-
+    ignoreScroll = true;
     previousIndex = activeIndex;
     activeIndex = newIndex;
 
-    // Определяем направление для анимации
     const direction = newIndex > previousIndex ? 'next' : 'prev';
-
-    // Анимация изображений
     animateImages(direction);
-
-    // Обновляем контент
     updateContent();
-
-    // Скролл к секции
     scrollToSection(activeIndex);
-
     setTimeout(() => {
         isAnimating = false;
-        // Через 500ms снова разрешаем скролл
         setTimeout(() => {
             ignoreScroll = false;
         }, 500);
@@ -112,7 +102,6 @@ function animateImages(direction) {
 
     if (!currentImage || !nextImage) return;
 
-    // Убираем все классы анимации
     images.forEach(img => {
         img.classList.remove(
             'slide-out-top-pc', 'slide-out-bottom-pc',
@@ -123,7 +112,6 @@ function animateImages(direction) {
     });
 
     if (window.innerWidth <= 990) {
-        // Мобильная анимация (горизонтальная за пределы экрана)
         if (direction === 'next') {
             currentImage.classList.add('slide-out-left-mobile');
             nextImage.classList.add('slide-in-right-mobile');
@@ -132,7 +120,6 @@ function animateImages(direction) {
             nextImage.classList.add('slide-in-left-mobile');
         }
     } else {
-        // PC анимация (вертикальная за пределы экрана)
         if (direction === 'next') {
             currentImage.classList.add('slide-out-top-pc');
             nextImage.classList.add('slide-in-bottom-pc');
@@ -142,12 +129,10 @@ function animateImages(direction) {
         }
     }
 
-    // Обновляем активное изображение
     setTimeout(() => {
         currentImage.classList.remove('active');
         nextImage.classList.add('active');
 
-        // Убираем классы анимации после завершения
         setTimeout(() => {
             currentImage.classList.remove(
                 'slide-out-top-pc', 'slide-out-bottom-pc',
@@ -172,7 +157,6 @@ function updateContent() {
     contentButton.href = section.link;
     contentButton.setAttribute('target', '_blank');
 
-    // Анимация кнопок
     buttons.forEach((btn, index) => {
         if (index === activeIndex) {
             btn.classList.add('active');
@@ -181,7 +165,6 @@ function updateContent() {
         }
     });
 
-    // Анимация контента
     contentTitle.classList.remove('active');
     contentText.classList.remove('active');
     contentButton.classList.remove('active');
@@ -279,7 +262,6 @@ function onScroll() {
     }
 
     scrollTimeout = setTimeout(() => {
-        // Игнорируем скролл если был клик по кнопке
         if (isAnimating || ignoreScroll) return;
 
         const newIndex = getCurrentSectionIndex();

@@ -102,7 +102,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     padding: 60px;
     position: relative;
     z-index: 2;
@@ -190,7 +190,6 @@ body {
 .sidebar button .label {
     padding: 2px 5px;
     font-size: 14px;
-    /* letter-spacing: 3px; */
 }
 
 @media (max-width: 1300px) {
@@ -427,10 +426,6 @@ body {
 }
 
 
-
-
-
-/* Анимации для PC (вертикальные) */
 .section-image.slide-out-top {
     transform: translateY(-100%) !important;
     opacity: 0 !important;
@@ -461,7 +456,6 @@ body {
     opacity: 1 !important;
 }
 
-/* Анимации для мобильных (горизонтальные) */
 @media (max-width: 990px) {
     .section-image.slide-out-left {
         transform: translateX(-100%) !important;
@@ -494,7 +488,6 @@ body {
     }
 }
 
-/* Улучшенные переходы для изображений */
 .section-image {
     position: absolute;
     width: 100%;
@@ -512,19 +505,16 @@ body {
     transform: translateX(0) translateY(0) !important;
 }
 
-/* Улучшенные анимации для контента */
 .content-title,
 .content-text,
 .btn {
     transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Плавные переходы для кнопок */
 .sidebar button {
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Улучшенный ховер эффект для кнопок */
 .sidebar button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(235, 94, 28, 0.3);
@@ -535,7 +525,6 @@ body {
     box-shadow: 0 6px 16px rgba(235, 94, 28, 0.4);
 }
 
-/* Адаптивные улучшения для мобильных */
 @media (max-width: 990px) {
     .section-image {
         transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -546,14 +535,12 @@ body {
     }
 }
 
-/* Дополнительные медиа-запросы для плавности */
 @media (max-width: 480px) {
     .section-image {
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 }
 
-/* Базовые стили для изображений */
 .section-image {
     position: absolute;
     width: 100%;
@@ -575,21 +562,16 @@ body {
     z-index: 2;
 }
 
-/* PC АНИМАЦИИ (вертикальные за пределы экрана) */
-
-/* Улетает вверх за пределы экрана */
 .section-image.slide-out-top-pc {
     transform: translateY(-150%) !important;
     opacity: 0 !important;
 }
 
-/* Улетает вниз за пределы экрана */
 .section-image.slide-out-bottom-pc {
     transform: translateY(150%) !important;
     opacity: 0 !important;
 }
 
-/* Прилетает сверху (из-за пределов экрана) */
 .section-image.slide-in-top-pc {
     transform: translateY(-150%) !important;
     opacity: 0 !important;
@@ -600,7 +582,6 @@ body {
     opacity: 1 !important;
 }
 
-/* Прилетает снизу (из-за пределов экрана) */
 .section-image.slide-in-bottom-pc {
     transform: translateY(150%) !important;
     opacity: 0 !important;
@@ -611,7 +592,6 @@ body {
     opacity: 1 !important;
 }
 
-/* МОБИЛЬНЫЕ АНИМАЦИИ (горизонтальные за пределы экрана) */
 @media (max-width: 990px) {
     .section-image {
         transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -622,19 +602,16 @@ body {
         position: relative;
     }
 
-    /* Улетает влево за пределы экрана */
     .section-image.slide-out-left-mobile {
         transform: translateX(-150%) !important;
         opacity: 0 !important;
     }
 
-    /* Улетает вправо за пределы экрана */
     .section-image.slide-out-right-mobile {
         transform: translateX(150%) !important;
         opacity: 0 !important;
     }
 
-    /* Прилетает слева (из-за пределов экрана) */
     .section-image.slide-in-left-mobile {
         transform: translateX(-150%) !important;
         opacity: 0 !important;
@@ -645,7 +622,6 @@ body {
         opacity: 1 !important;
     }
 
-    /* Прилетает справа (из-за пределов экрана) */
     .section-image.slide-in-right-mobile {
         transform: translateX(150%) !important;
         opacity: 0 !important;
@@ -657,19 +633,16 @@ body {
     }
 }
 
-/* Улучшенные анимации для контента */
 .content-title,
 .content-text,
 .btn {
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Плавные переходы для кнопок */
 .sidebar button {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Улучшенный ховер эффект для кнопок */
 .sidebar button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(235, 94, 28, 0.3);
@@ -680,14 +653,12 @@ body {
     box-shadow: 0 6px 16px rgba(235, 94, 28, 0.4);
 }
 
-/* Дополнительные медиа-запросы для плавности */
 @media (max-width: 480px) {
     .section-image {
         transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }
 
-/* Убедимся, что контейнер скрывает выходящие за пределы элементы */
 .image-area {
     position: absolute;
     right: 60px;
