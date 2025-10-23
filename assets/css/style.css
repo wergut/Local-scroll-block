@@ -252,12 +252,13 @@ body {
 
     .sidebar button {
         transform: none;
-        width: auto;
         height: 40px;
         flex: 0 0 auto;
         padding: 8px 16px;
         border-radius: 20px;
         font-size: 11px;
+        width: 300px;
+        margin-bottom: 10px;
     }
 
     .sidebar button .label {
@@ -314,11 +315,27 @@ body {
 
     .section-image {
         transform: translateY(30px);
+        object-fit: contain;
     }
 
     .section-image.active {
         transform: translateY(0);
     }
+
+    .sidebar {
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
+
+    .image-area {
+        margin: 0 auto 20px;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        display: flex
+    ;
+    }
+
 }
 
 .sidebar::-webkit-scrollbar {
