@@ -15,9 +15,6 @@ let isAnimating = false;
 let scrollTimeout = null;
 let lastScrollY = 0;
 let ignoreScroll = false;
-let ticking = false; // Добавляем для requestAnimationFrame
-
-// ВСЕ функции остаются БЕЗ ИЗМЕНЕНИЙ до onScroll
 
 function initUI() {
     sidebar.innerHTML = '';
@@ -85,17 +82,12 @@ function handleButtonClick(newIndex) {
         isAnimating = false;
         setTimeout(() => {
             ignoreScroll = false;
-        }, 500);
-    }, 800);
+        }, 200);
+    }, 500);
 }
 
 function handleScrollChange(newIndex) {
     if (isAnimating || newIndex === activeIndex) return;
-
-    // Разрешаем переход только на соседние секции
-    if (Math.abs(newIndex - activeIndex) > 1) {
-        return;
-    }
 
     isAnimating = true;
     previousIndex = activeIndex;
@@ -107,18 +99,7 @@ function handleScrollChange(newIndex) {
 
     setTimeout(() => {
         isAnimating = false;
-    }, 600);
-}
-
-function getDirection(oldIndex, newIndex) {
-    const scrollDirection = window.scrollY > lastScrollY ? 'down' : 'up';
-    lastScrollY = window.scrollY;
-
-    if (scrollDirection === 'down') {
-        return 'next';
-    } else {
-        return 'prev';
-    }
+    }, 300); // ОЧЕНЬ быстро для скролла
 }
 
 function animateImages(direction) {
@@ -157,18 +138,7 @@ function animateImages(direction) {
     setTimeout(() => {
         currentImage.classList.remove('active');
         nextImage.classList.add('active');
-
-        setTimeout(() => {
-            currentImage.classList.remove(
-                'slide-out-top-pc', 'slide-out-bottom-pc',
-                'slide-out-left-mobile', 'slide-out-right-mobile'
-            );
-            nextImage.classList.remove(
-                'slide-in-top-pc', 'slide-in-bottom-pc',
-                'slide-in-left-mobile', 'slide-in-right-mobile'
-            );
-        }, 100);
-    }, 400);
+    }, 200); // ОЧЕНЬ быстро
 }
 
 function updateContent() {
@@ -189,19 +159,15 @@ function updateContent() {
         }
     });
 
-    contentTitle.classList.remove('active');
-    contentText.classList.remove('active');
-    contentButton.classList.remove('active');
+    // УБИРАЕМ анимацию контента при скролле - только мгновенное обновление
+    contentTitle.textContent = section.title;
+    contentText.textContent = section.text;
+    contentButton.textContent = section.buttonText;
+    contentButton.href = section.link;
 
-    setTimeout(() => {
-        contentTitle.classList.add('active');
-        setTimeout(() => {
-            contentText.classList.add('active');
-            setTimeout(() => {
-                contentButton.classList.add('active');
-            }, 100);
-        }, 100);
-    }, 200);
+    contentTitle.classList.add('active');
+    contentText.classList.add('active');
+    contentButton.classList.add('active');
 }
 
 function scrollToSection(index) {
@@ -224,7 +190,6 @@ function scrollToSection(index) {
     });
 }
 
-// ВОЗВРАЩАЕМ ОРИГИНАЛЬНЫЙ getCurrentSectionIndex
 function getCurrentSectionIndex() {
     const scrollY = window.scrollY;
     const scrollSectionRect = scrollSection.getBoundingClientRect();
@@ -270,8 +235,8 @@ function updateUI(withAnimation = true) {
                 contentText.classList.add('active');
                 setTimeout(() => {
                     contentButton.classList.add('active');
-                }, 100);
-            }, 100);
+                }, 50);
+            }, 50);
         }, 50);
     } else {
         contentTitle.classList.add('active');
@@ -281,18 +246,18 @@ function updateUI(withAnimation = true) {
 }
 
 function onScroll() {
-    if (!ticking) {
-        requestAnimationFrame(() => {
-            if (isAnimating || ignoreScroll) return;
-
-            const newIndex = getCurrentSectionIndex();
-            if (newIndex !== activeIndex) {
-                handleScrollChange(newIndex);
-            }
-            ticking = false;
-        });
-        ticking = true;
+    if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
     }
+
+    scrollTimeout = setTimeout(() => {
+        if (isAnimating || ignoreScroll) return;
+
+        const newIndex = getCurrentSectionIndex();
+        if (newIndex !== activeIndex) {
+            handleScrollChange(newIndex);
+        }
+    }, 50); // СУПЕР быстрый отклик
 }
 
 initUI();
