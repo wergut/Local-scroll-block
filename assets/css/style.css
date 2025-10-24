@@ -692,3 +692,83 @@ body {
         overflow: hidden;
     }
 }
+
+
+/* Стили для ультра-широких мониторов (3440px и больше) */
+@media (min-width: 3440px) {
+    .image-area {
+        width: 900px;
+        height: 1100px;
+        right: 160px;
+    }
+
+    .section-image {
+        max-height: 1200px;
+        max-width: 600px;
+    }
+
+    .content-area {
+        padding: 120px;
+    }
+
+    .content-title {
+        font-size: 42px;
+        max-width: none; /* Убираем ограничение по ширине */
+        margin-bottom: 35px;
+    }
+
+    .content-text {
+        font-size: 34px;
+        max-width: 1600px;
+        line-height: 1.8;
+    }
+
+    .btn {
+        padding: 20px 55px 26px 55px;
+        font-size: 30px;
+        margin-top: 50px;
+    }
+
+    .sidebar {
+        width: 600px;
+        padding: 60px 60px 60px 70px;
+    }
+
+    .sidebar button {
+        min-width: 440px;
+        padding: 14px 12px;
+        font-size: 26px;
+    }
+
+    .sidebar button .label {
+        font-size: 26px;
+        max-width: 400px;
+    }
+}
+
+/* Улучшенные анимации для больших экранов */
+@media (min-width: 3440px) {
+    .section-image {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .content-title,
+    .content-text,
+    .btn {
+        transition: all 0.4s ease-out;
+    }
+}
+
+/* Гарантируем, что изображения не будут растягиваться слишком сильно */
+.section-image {
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Улучшаем качество изображений на ретине */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .section-image {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
