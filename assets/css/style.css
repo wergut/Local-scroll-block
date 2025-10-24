@@ -74,7 +74,6 @@ body {
     min-width: 280px;
     padding: 8px 5px;
     font-size: 14px;
-    letter-spacing: 3px;
 }
 
 .sidebar button .label {
@@ -353,7 +352,6 @@ body {
     }
     .sidebar button .label {
         max-width: none;
-        letter-spacing: 0;
     }
 
     .sidebar button {
@@ -416,7 +414,6 @@ body {
     .sidebar button .label {
         padding: 2px 5px;
         font-size: 14px;
-        letter-spacing: 3px;
     }
 
     .image-area {
