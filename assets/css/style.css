@@ -46,7 +46,7 @@ body {
     align-content: center;
     justify-items: center;
     padding: 30px 30px 30px 40px;
-    gap: 30px 0;
+    gap: 15px 0;
     max-height: 100vh;
     overflow-y: auto;
     display: flex;
@@ -241,7 +241,7 @@ body {
         flex-direction: row;
         flex-wrap: nowrap;
         justify-content: flex-start;
-        padding: 15px 10px;
+        padding: 15px 0px;
         gap: 8px;
         overflow-x: auto;
         max-height: none;
@@ -362,9 +362,10 @@ body {
 @media (max-width: 480px) {
     .sidebar button {
         font-size: 10px;
-        padding: 6px 12px;
+        padding: 6px 5px;
         height: 35px;
-        min-width: 200px;
+        min-width: initial;
+        max-width: 177px;
     }
 
     .sidebar button .label {
@@ -386,11 +387,13 @@ body {
 
     .content-area {
         flex: 0;
+        text-align: center;
     }
 
     .btn {
         padding: 10px 25px;
         font-size: 13px;
+        margin: 20px auto 0;
     }
 
     img.section-image {
@@ -408,7 +411,7 @@ body {
         width: auto;
         height: 40px;
         padding: 8px 5px;
-        min-width: 280px;
+        min-width: 240px;
     }
 
     .sidebar button .label {
