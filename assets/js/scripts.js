@@ -12,12 +12,10 @@ let images = [];
 let activeIndex = 0;
 let previousIndex = 0;
 let isAnimating = false;
-let scrollTimeout = null;
-let lastScrollY = 0;
 let ignoreScroll = false;
-let ticking = false; // Добавляем для requestAnimationFrame
 
-// ВСЕ функции остаются БЕЗ ИЗМЕНЕНИЙ до onScroll
+// Создаем триггеры для наблюдения
+let sectionTriggers = [];
 
 function initUI() {
     sidebar.innerHTML = '';
@@ -58,6 +56,9 @@ function initUI() {
 
     buttons = Array.from(sidebar.querySelectorAll('button'));
 
+    // Создаем триггеры для Intersection Observer
+    createSectionTriggers();
+
     setTimeout(() => {
         contentTitle.classList.add('active');
         contentText.classList.add('active');
@@ -66,6 +67,55 @@ function initUI() {
     }, 100);
 
     updateUI(false);
+}
+
+function createSectionTriggers() {
+    // Удаляем старые триггеры
+    sectionTriggers.forEach(trigger => trigger.remove());
+    sectionTriggers = [];
+
+    const scrollSectionHeight = scrollSection.offsetHeight;
+    const triggerHeight = 100; // Высота триггера в пикселях
+
+    MATERIAL_SECTIONS.forEach((section, i) => {
+        const trigger = document.createElement('div');
+        trigger.className = 'section-trigger';
+        trigger.style.cssText = `
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: ${triggerHeight}px;
+            pointer-events: none;
+            z-index: 1000;
+        `;
+
+        // Располагаем триггеры равномерно по высоте scroll-section
+        const triggerTop = (scrollSectionHeight / MATERIAL_SECTIONS.length) * i + (scrollSectionHeight / MATERIAL_SECTIONS.length / 2) - (triggerHeight / 2);
+        trigger.style.top = `${triggerTop}px`;
+        trigger.dataset.index = i;
+
+        scrollSection.appendChild(trigger);
+        sectionTriggers.push(trigger);
+    });
+
+    // Настраиваем Intersection Observer
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !isAnimating && !ignoreScroll) {
+                const newIndex = parseInt(entry.target.dataset.index);
+                if (newIndex !== activeIndex) {
+                    handleScrollChange(newIndex);
+                }
+            }
+        });
+    }, {
+        root: null,
+        rootMargin: '-40% 0px -40% 0px', // Срабатывает когда 20% триггера в зоне видимости
+        threshold: 0
+    });
+
+    // Начинаем наблюдение
+    sectionTriggers.forEach(trigger => observer.observe(trigger));
 }
 
 function handleButtonClick(newIndex) {
@@ -108,17 +158,6 @@ function handleScrollChange(newIndex) {
     setTimeout(() => {
         isAnimating = false;
     }, 600);
-}
-
-function getDirection(oldIndex, newIndex) {
-    const scrollDirection = window.scrollY > lastScrollY ? 'down' : 'up';
-    lastScrollY = window.scrollY;
-
-    if (scrollDirection === 'down') {
-        return 'next';
-    } else {
-        return 'prev';
-    }
 }
 
 function animateImages(direction) {
@@ -205,40 +244,15 @@ function updateContent() {
 }
 
 function scrollToSection(index) {
-    const scrollSectionRect = scrollSection.getBoundingClientRect();
-    const scrollSectionTop = scrollSectionRect.top + window.scrollY;
-    const sectionHeight = window.innerHeight * 0.4;
+    if (sectionTriggers[index]) {
+        const triggerRect = sectionTriggers[index].getBoundingClientRect();
+        const targetScroll = triggerRect.top + window.scrollY - (window.innerHeight / 2);
 
-    let targetScroll;
-    if (window.innerWidth <= 990) {
-        const maxScroll = scrollSectionTop + scrollSectionRect.height - window.innerHeight;
-        const calculatedScroll = scrollSectionTop + (index * sectionHeight);
-        targetScroll = Math.min(calculatedScroll, maxScroll);
-    } else {
-        targetScroll = scrollSectionTop + (index * sectionHeight);
+        window.scrollTo({
+            top: targetScroll,
+            behavior: 'smooth'
+        });
     }
-
-    window.scrollTo({
-        top: targetScroll,
-        behavior: 'smooth'
-    });
-}
-
-// ВОЗВРАЩАЕМ ОРИГИНАЛЬНЫЙ getCurrentSectionIndex
-function getCurrentSectionIndex() {
-    const scrollY = window.scrollY;
-    const scrollSectionRect = scrollSection.getBoundingClientRect();
-    const scrollSectionTop = scrollSectionRect.top + window.scrollY;
-    const scrollSectionHeight = scrollSectionRect.height;
-
-    if (scrollY < scrollSectionTop) return 0;
-    if (scrollY >= scrollSectionTop + scrollSectionHeight - 10) return MATERIAL_SECTIONS.length - 1;
-
-    const viewportCenter = scrollY + window.innerHeight / 2;
-    const relativePosition = viewportCenter - scrollSectionTop;
-    const index = Math.floor(relativePosition / (scrollSectionHeight / MATERIAL_SECTIONS.length));
-
-    return Math.min(MATERIAL_SECTIONS.length - 1, Math.max(0, index));
 }
 
 function updateUI(withAnimation = true) {
@@ -280,23 +294,11 @@ function updateUI(withAnimation = true) {
     }
 }
 
-function onScroll() {
-    if (!ticking) {
-        requestAnimationFrame(() => {
-            if (isAnimating || ignoreScroll) return;
-
-            const newIndex = getCurrentSectionIndex();
-            if (newIndex !== activeIndex) {
-                handleScrollChange(newIndex);
-            }
-            ticking = false;
-        });
-        ticking = true;
-    }
-}
-
 initUI();
-window.addEventListener('scroll', onScroll);
+
 window.addEventListener('resize', () => {
-    setTimeout(() => updateUI(false), 100);
+    setTimeout(() => {
+        createSectionTriggers();
+        updateUI(false);
+    }, 100);
 });

@@ -91,10 +91,11 @@ body {
 }
 
 .sidebar button.active {
-    background: #eb5e1c;
+    /* background: #eb5e1c; */
     border-color: #ffffff;
     color: #ffffff;
     font-weight: 700;
+    box-shadow: 0 0 8px 5px rgba(255, 255, 255, 0.3);
 }
 
 .content-area {
@@ -694,7 +695,6 @@ body {
 }
 
 
-/* Стили для ультра-широких мониторов (3440px и больше) */
 @media (min-width: 3440px) {
     .image-area {
         width: 900px;
@@ -713,7 +713,7 @@ body {
 
     .content-title {
         font-size: 42px;
-        max-width: none; /* Убираем ограничение по ширине */
+        max-width: none;
         margin-bottom: 35px;
     }
 
@@ -746,7 +746,6 @@ body {
     }
 }
 
-/* Улучшенные анимации для больших экранов */
 @media (min-width: 3440px) {
     .section-image {
         transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -759,13 +758,11 @@ body {
     }
 }
 
-/* Гарантируем, что изображения не будут растягиваться слишком сильно */
 .section-image {
     object-fit: cover;
     object-position: center;
 }
 
-/* Улучшаем качество изображений на ретине */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
     .section-image {
         image-rendering: -webkit-optimize-contrast;
