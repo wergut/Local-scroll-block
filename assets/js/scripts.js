@@ -1,6 +1,5 @@
 const stickyPanel = document.getElementById('stickyPanel');
 const sidebar = document.getElementById('sidebar');
-const contentArea = document.getElementById('contentArea');
 const contentTitle = document.getElementById('content-title');
 const contentText = document.getElementById('content-text');
 const contentButton = document.getElementById('content-button');
@@ -10,12 +9,8 @@ const scrollSection = document.querySelector('.scroll-section');
 let buttons = [];
 let images = [];
 let activeIndex = 0;
-let previousIndex = 0;
 let isAnimating = false;
-let ignoreScroll = false;
-
-// Создаем триггеры для наблюдения
-let sectionTriggers = [];
+let scrollTimeout;
 
 function initUI() {
     sidebar.innerHTML = '';
@@ -56,9 +51,6 @@ function initUI() {
 
     buttons = Array.from(sidebar.querySelectorAll('button'));
 
-    // Создаем триггеры для Intersection Observer
-    createSectionTriggers();
-
     setTimeout(() => {
         contentTitle.classList.add('active');
         contentText.classList.add('active');
@@ -67,116 +59,120 @@ function initUI() {
     }, 100);
 
     updateUI(false);
+
+    // Инициализируем скролл-трекинг
+    initScrollTracking();
 }
 
-function createSectionTriggers() {
-    // Удаляем старые триггеры
-    sectionTriggers.forEach(trigger => trigger.remove());
-    sectionTriggers = [];
+function initScrollTracking() {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
 
-    const scrollSectionHeight = scrollSection.offsetHeight;
-    const triggerHeight = 100; // Высота триггера в пикселях
+    const handleScroll = () => {
+        const currentScrollY = window.scrollY;
+        const scrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
+        lastScrollY = currentScrollY;
 
-    MATERIAL_SECTIONS.forEach((section, i) => {
-        const trigger = document.createElement('div');
-        trigger.className = 'section-trigger';
-        trigger.style.cssText = `
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: ${triggerHeight}px;
-            pointer-events: none;
-            z-index: 1000;
-        `;
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                updateActiveSection(currentScrollY, scrollDirection);
+                ticking = false;
+            });
+            ticking = true;
+        }
+    };
 
-        // Располагаем триггеры равномерно по высоте scroll-section
-        const triggerTop = (scrollSectionHeight / MATERIAL_SECTIONS.length) * i + (scrollSectionHeight / MATERIAL_SECTIONS.length / 2) - (triggerHeight / 2);
-        trigger.style.top = `${triggerTop}px`;
-        trigger.dataset.index = i;
+    window.addEventListener('scroll', handleScroll, { passive: true });
+}
 
-        scrollSection.appendChild(trigger);
-        sectionTriggers.push(trigger);
-    });
+function updateActiveSection(scrollY, direction) {
+    if (isAnimating) return;
 
-    // Настраиваем Intersection Observer
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !isAnimating && !ignoreScroll) {
-                const newIndex = parseInt(entry.target.dataset.index);
-                if (newIndex !== activeIndex) {
-                    handleScrollChange(newIndex);
-                }
-            }
-        });
-    }, {
-        root: null,
-        rootMargin: '-40% 0px -40% 0px', // Срабатывает когда 20% триггера в зоне видимости
-        threshold: 0
-    });
+    const scrollSectionRect = scrollSection.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
 
-    // Начинаем наблюдение
-    sectionTriggers.forEach(trigger => observer.observe(trigger));
+    // Проверяем, находится ли скролл-секция в области видимости
+    if (scrollSectionRect.top > windowHeight || scrollSectionRect.bottom < 0) {
+        return; // Скролл-секция не видна
+    }
+
+    // Рассчитываем прогресс внутри скролл-секции
+    const scrollStart = scrollSection.offsetTop;
+    const scrollEnd = scrollStart + scrollSection.offsetHeight - windowHeight;
+
+    // Ограничиваем скролл границами секции
+    const constrainedScroll = Math.max(scrollStart, Math.min(scrollY, scrollEnd));
+    const scrollProgress = (constrainedScroll - scrollStart) / (scrollEnd - scrollStart);
+
+    // Определяем активную секцию
+    let newIndex = Math.floor(scrollProgress * MATERIAL_SECTIONS.length);
+    newIndex = Math.max(0, Math.min(newIndex, MATERIAL_SECTIONS.length - 1));
+
+    // Добавляем небольшую задержку для предотвращения частых переключений
+    if (newIndex !== activeIndex) {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            handleScrollChange(newIndex, direction);
+        }, 50);
+    }
+}
+
+function handleScrollChange(newIndex, direction) {
+    if (isAnimating || newIndex === activeIndex) return;
+
+    isAnimating = true;
+    const previousIndex = activeIndex;
+    activeIndex = newIndex;
+
+    animateImages(previousIndex, activeIndex, direction);
+    updateContent();
+
+    setTimeout(() => {
+        isAnimating = false;
+    }, 500);
 }
 
 function handleButtonClick(newIndex) {
     if (isAnimating || newIndex === activeIndex) return;
 
     isAnimating = true;
-    ignoreScroll = true;
-    previousIndex = activeIndex;
+    const previousIndex = activeIndex;
     activeIndex = newIndex;
 
     const direction = newIndex > previousIndex ? 'next' : 'prev';
-    animateImages(direction);
+    animateImages(previousIndex, activeIndex, direction);
     updateContent();
     scrollToSection(activeIndex);
-
-    setTimeout(() => {
-        isAnimating = false;
-        setTimeout(() => {
-            ignoreScroll = false;
-        }, 500);
-    }, 800);
-}
-
-function handleScrollChange(newIndex) {
-    if (isAnimating || newIndex === activeIndex) return;
-
-    // Разрешаем переход только на соседние секции
-    if (Math.abs(newIndex - activeIndex) > 1) {
-        return;
-    }
-
-    isAnimating = true;
-    previousIndex = activeIndex;
-    activeIndex = newIndex;
-
-    const direction = newIndex > previousIndex ? 'next' : 'prev';
-    animateImages(direction);
-    updateContent();
 
     setTimeout(() => {
         isAnimating = false;
     }, 600);
 }
 
-function animateImages(direction) {
-    const currentImage = images[previousIndex];
-    const nextImage = images[activeIndex];
+function animateImages(prevIndex, newIndex, direction) {
+    const currentImage = images[prevIndex];
+    const nextImage = images[newIndex];
 
     if (!currentImage || !nextImage) return;
 
+    // Сбрасываем все классы анимации
     images.forEach(img => {
         img.classList.remove(
             'slide-out-top-pc', 'slide-out-bottom-pc',
             'slide-in-top-pc', 'slide-in-bottom-pc',
             'slide-out-left-mobile', 'slide-out-right-mobile',
-            'slide-in-left-mobile', 'slide-in-right-mobile'
+            'slide-in-left-mobile', 'slide-in-right-mobile',
+            'active'
         );
     });
 
+    // Определяем направление для анимации
+    const isNext = newIndex > prevIndex;
+    const animDirection = isNext ? 'next' : 'prev';
+
     if (window.innerWidth <= 990) {
-        if (direction === 'next') {
+        // Мобильная анимация
+        if (animDirection === 'next') {
             currentImage.classList.add('slide-out-left-mobile');
             nextImage.classList.add('slide-in-right-mobile');
         } else {
@@ -184,7 +180,8 @@ function animateImages(direction) {
             nextImage.classList.add('slide-in-left-mobile');
         }
     } else {
-        if (direction === 'next') {
+        // Десктопная анимация
+        if (animDirection === 'next') {
             currentImage.classList.add('slide-out-top-pc');
             nextImage.classList.add('slide-in-bottom-pc');
         } else {
@@ -193,21 +190,19 @@ function animateImages(direction) {
         }
     }
 
-    setTimeout(() => {
-        currentImage.classList.remove('active');
-        nextImage.classList.add('active');
+    nextImage.classList.add('active');
 
-        setTimeout(() => {
-            currentImage.classList.remove(
-                'slide-out-top-pc', 'slide-out-bottom-pc',
-                'slide-out-left-mobile', 'slide-out-right-mobile'
-            );
-            nextImage.classList.remove(
-                'slide-in-top-pc', 'slide-in-bottom-pc',
-                'slide-in-left-mobile', 'slide-in-right-mobile'
-            );
-        }, 100);
-    }, 400);
+    // Убираем классы анимации после завершения
+    setTimeout(() => {
+        currentImage.classList.remove(
+            'slide-out-top-pc', 'slide-out-bottom-pc',
+            'slide-out-left-mobile', 'slide-out-right-mobile'
+        );
+        nextImage.classList.remove(
+            'slide-in-top-pc', 'slide-in-bottom-pc',
+            'slide-in-left-mobile', 'slide-in-right-mobile'
+        );
+    }, 500);
 }
 
 function updateContent() {
@@ -218,16 +213,12 @@ function updateContent() {
     contentText.textContent = section.text;
     contentButton.textContent = section.buttonText;
     contentButton.href = section.link;
-    contentButton.setAttribute('target', '_blank');
 
     buttons.forEach((btn, index) => {
-        if (index === activeIndex) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+        btn.classList.toggle('active', index === activeIndex);
     });
 
+    // Анимация появления контента
     contentTitle.classList.remove('active');
     contentText.classList.remove('active');
     contentButton.classList.remove('active');
@@ -240,19 +231,21 @@ function updateContent() {
                 contentButton.classList.add('active');
             }, 100);
         }, 100);
-    }, 200);
+    }, 150);
 }
 
 function scrollToSection(index) {
-    if (sectionTriggers[index]) {
-        const triggerRect = sectionTriggers[index].getBoundingClientRect();
-        const targetScroll = triggerRect.top + window.scrollY - (window.innerHeight / 2);
+    const scrollSectionRect = scrollSection.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const sectionHeight = scrollSection.offsetHeight / MATERIAL_SECTIONS.length;
 
-        window.scrollTo({
-            top: targetScroll,
-            behavior: 'smooth'
-        });
-    }
+    // Позиционируем так, чтобы секция была по центру экрана
+    const targetScroll = scrollSection.offsetTop + (sectionHeight * index) + (sectionHeight / 2) - (windowHeight / 2);
+
+    window.scrollTo({
+        top: targetScroll,
+        behavior: 'smooth'
+    });
 }
 
 function updateUI(withAnimation = true) {
@@ -263,14 +256,9 @@ function updateUI(withAnimation = true) {
     contentText.textContent = section.text;
     contentButton.textContent = section.buttonText;
     contentButton.href = section.link;
-    contentButton.setAttribute('target', '_blank');
 
     buttons.forEach((btn, index) => {
-        if (index === activeIndex) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+        btn.classList.toggle('active', index === activeIndex);
     });
 
     if (withAnimation) {
@@ -294,11 +282,13 @@ function updateUI(withAnimation = true) {
     }
 }
 
+// Инициализация
 initUI();
 
+// Ресайз
 window.addEventListener('resize', () => {
-    setTimeout(() => {
-        createSectionTriggers();
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
         updateUI(false);
     }, 100);
 });
