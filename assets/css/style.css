@@ -697,9 +697,9 @@ body {
 
 @media (min-width: 3040px) {
     .image-area {
-        width: 900px;
+        width: 800px;
         height: 1100px;
-        right: 160px;
+        right: 100px;
     }
 
     .section-image {
@@ -738,6 +738,7 @@ body {
     .sidebar button {
         min-width: 680px;
         padding: 14px 12px;
+        border-radius: 55px;
     }
 
     .sidebar button .label {
@@ -753,6 +754,7 @@ body {
     .content-text,
     .btn {
         transition: all 0.4s ease-out;
+        max-width: 1230px;
     }
 }
 
