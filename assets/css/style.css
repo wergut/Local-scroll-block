@@ -41,7 +41,7 @@ body {
 
 .sidebar {
     position: relative;
-    width: 350px;
+    width: 370px;
     display: grid;
     align-content: center;
     justify-items: center;
@@ -699,13 +699,13 @@ body {
     }
 
     .content-title {
-        font-size: 22px;
+        font-size: 60px;
         max-width: none;
         margin-bottom: 35px;
     }
 
     .content-text {
-        font-size: 20px;
+        font-size: 48px;
         max-width: 1600px;
         line-height: 1.8;
     }
