@@ -82,7 +82,20 @@ function initScrollTracking() {
         }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Для мобильных - просто добавляем небольшую задержку
+    if ('ontouchstart' in window) {
+        let mobileScrollTimeout;
+        window.addEventListener('scroll', () => {
+            if (!mobileScrollTimeout) {
+                mobileScrollTimeout = setTimeout(() => {
+                    handleScroll();
+                    mobileScrollTimeout = null;
+                }, 70); // Небольшая задержка для мобильных
+            }
+        }, { passive: true });
+    } else {
+        window.addEventListener('scroll', handleScroll, { passive: true });
+    }
 }
 
 function updateActiveSection(scrollY, direction) {
@@ -108,12 +121,14 @@ function updateActiveSection(scrollY, direction) {
     let newIndex = Math.floor(scrollProgress * MATERIAL_SECTIONS.length);
     newIndex = Math.max(0, Math.min(newIndex, MATERIAL_SECTIONS.length - 1));
 
-    // Добавляем небольшую задержку для предотвращения частых переключений
+    // Для мобильных - добавляем небольшую задержку чтобы избежать проскакивания
+    const delay = ('ontouchstart' in window) ? 80 : 50;
+
     if (newIndex !== activeIndex) {
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
             handleScrollChange(newIndex, direction);
-        }, 50);
+        }, delay);
     }
 }
 
