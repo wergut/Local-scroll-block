@@ -638,12 +638,6 @@ body {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (max-width: 480px) {
-    .section-image {
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-}
-
 .image-area {
     position: absolute;
     right: 60px;
@@ -677,8 +671,16 @@ body {
         order: -1;
         overflow: hidden;
     }
+    .sidebar button.active {
+        box-shadow: 0 0 15px 10px rgba(255, 255, 255, 0.3);
+    }
 }
 
+@media (max-width: 480px) {
+    .section-image {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
 
 @media (min-width: 3040px) {
     .image-area {
