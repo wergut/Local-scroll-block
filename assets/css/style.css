@@ -156,7 +156,6 @@ body {
 .btn:hover {
     background: #d35400;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(235, 94, 28, 0.3);
 }
 
 .image-area {
