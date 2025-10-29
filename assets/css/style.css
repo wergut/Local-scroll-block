@@ -41,7 +41,7 @@ body {
 
 .sidebar {
     position: relative;
-    width: 370px;
+    width: 365px;
     display: grid;
     align-content: center;
     justify-items: center;
@@ -241,7 +241,7 @@ body {
         flex-direction: row;
         flex-wrap: nowrap;
         justify-content: flex-start;
-        padding: 15px 0px;
+        padding: 15px 0px 35px 0px;
         gap: 8px;
         overflow-x: auto;
         max-height: none;
@@ -638,6 +638,12 @@ body {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@media (max-width: 480px) {
+    .section-image {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
+
 .image-area {
     position: absolute;
     right: 60px;
@@ -671,14 +677,42 @@ body {
         order: -1;
         overflow: hidden;
     }
-    .sidebar button.active {
-        box-shadow: 0 0 15px 10px rgba(255, 255, 255, 0.3);
+}
+
+
+@media (min-width: 1980px) {
+    .content-text {
+        max-width: 900px;
+        font-size: 28px;
+    }
+
+    .content-title {
+        max-width: 900px;
+        font-size: 38px;
+    }
+
+    .sidebar button .label {
+        font-size: 24px;
+        max-width: 340px;
+    }
+
+    .sidebar {
+        width: 475px;
+    }
+
+    .sidebar button {
+        min-width: 360px;
     }
 }
 
-@media (max-width: 480px) {
+@media (min-width: 2560px) {
+    .image-area {
+        width: 500px;
+    }
+
     .section-image {
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 800px;
+        max-width: 500px;
     }
 }
 
@@ -699,20 +733,20 @@ body {
     }
 
     .content-title {
-        font-size: 60px;
+        font-size: 48px;
         max-width: none;
         margin-bottom: 35px;
     }
 
     .content-text {
-        font-size: 48px;
+        font-size: 38px;
         max-width: 1600px;
         line-height: 1.8;
     }
 
     .btn {
         padding: 20px 55px 26px 55px;
-        font-size: 50px;
+        font-size: 46px;
         margin-top: 50px;
     }
 
@@ -743,6 +777,7 @@ body {
         transition: all 0.4s ease-out;
         max-width: 1230px;
     }
+
 }
 
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {

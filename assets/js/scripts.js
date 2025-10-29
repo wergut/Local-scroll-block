@@ -11,6 +11,7 @@ let images = [];
 let activeIndex = 0;
 let isAnimating = false;
 let scrollTimeout;
+let isInitialLoad = true; // Добавляем флаг первоначальной загрузки
 
 function initUI() {
     sidebar.innerHTML = '';
@@ -51,16 +52,35 @@ function initUI() {
 
     buttons = Array.from(sidebar.querySelectorAll('button'));
 
-    setTimeout(() => {
-        contentTitle.classList.add('active');
-        contentText.classList.add('active');
-        contentButton.classList.add('active');
-        buttons[0].classList.add('active');
-    }, 100);
+    // Убираем автоматическую активацию первой кнопки при загрузке
+    if (isInitialLoad) {
+        // Определяем активную секцию на основе скролла при загрузке
+        setTimeout(() => {
+            const scrollY = window.scrollY;
+            const scrollSectionRect = scrollSection.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+
+            if (scrollSectionRect.top <= 0 && scrollSectionRect.bottom >= 0) {
+                // Если скролл-секция в зоне видимости, определяем активную секцию по скроллу
+                const scrollStart = scrollSection.offsetTop;
+                const scrollEnd = scrollStart + scrollSection.offsetHeight - windowHeight;
+                const scrollProgress = (scrollY - scrollStart) / (scrollEnd - scrollStart);
+
+                let initialIndex = Math.floor(scrollProgress * MATERIAL_SECTIONS.length);
+                initialIndex = Math.max(0, Math.min(initialIndex, MATERIAL_SECTIONS.length - 1));
+
+                if (initialIndex !== 0) {
+                    activeIndex = initialIndex;
+                    updateUI(false);
+                }
+            }
+
+            isInitialLoad = false;
+        }, 100);
+    }
 
     updateUI(false);
 
-    // Инициализируем скролл-трекинг
     initScrollTracking();
 }
 
@@ -69,6 +89,9 @@ function initScrollTracking() {
     let ticking = false;
 
     const handleScroll = () => {
+        // Игнорируем скролл во время первоначальной загрузки
+        if (isInitialLoad) return;
+
         const currentScrollY = window.scrollY;
         const scrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
         lastScrollY = currentScrollY;
@@ -82,7 +105,19 @@ function initScrollTracking() {
         }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    if ('ontouchstart' in window) {
+        let mobileScrollTimeout;
+        window.addEventListener('scroll', () => {
+            if (!mobileScrollTimeout) {
+                mobileScrollTimeout = setTimeout(() => {
+                    handleScroll();
+                    mobileScrollTimeout = null;
+                }, 70);
+            }
+        }, { passive: true });
+    } else {
+        window.addEventListener('scroll', handleScroll, { passive: true });
+    }
 }
 
 function updateActiveSection(scrollY, direction) {
@@ -91,29 +126,26 @@ function updateActiveSection(scrollY, direction) {
     const scrollSectionRect = scrollSection.getBoundingClientRect();
     const windowHeight = window.innerHeight;
 
-    // Проверяем, находится ли скролл-секция в области видимости
     if (scrollSectionRect.top > windowHeight || scrollSectionRect.bottom < 0) {
-        return; // Скролл-секция не видна
+        return;
     }
 
-    // Рассчитываем прогресс внутри скролл-секции
     const scrollStart = scrollSection.offsetTop;
     const scrollEnd = scrollStart + scrollSection.offsetHeight - windowHeight;
 
-    // Ограничиваем скролл границами секции
     const constrainedScroll = Math.max(scrollStart, Math.min(scrollY, scrollEnd));
     const scrollProgress = (constrainedScroll - scrollStart) / (scrollEnd - scrollStart);
 
-    // Определяем активную секцию
     let newIndex = Math.floor(scrollProgress * MATERIAL_SECTIONS.length);
     newIndex = Math.max(0, Math.min(newIndex, MATERIAL_SECTIONS.length - 1));
 
-    // Добавляем небольшую задержку для предотвращения частых переключений
+    const delay = ('ontouchstart' in window) ? 80 : 50;
+
     if (newIndex !== activeIndex) {
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
             handleScrollChange(newIndex, direction);
-        }, 50);
+        }, delay);
     }
 }
 
@@ -155,7 +187,6 @@ function animateImages(prevIndex, newIndex, direction) {
 
     if (!currentImage || !nextImage) return;
 
-    // Сбрасываем все классы анимации
     images.forEach(img => {
         img.classList.remove(
             'slide-out-top-pc', 'slide-out-bottom-pc',
@@ -166,12 +197,10 @@ function animateImages(prevIndex, newIndex, direction) {
         );
     });
 
-    // Определяем направление для анимации
     const isNext = newIndex > prevIndex;
     const animDirection = isNext ? 'next' : 'prev';
 
     if (window.innerWidth <= 990) {
-        // Мобильная анимация
         if (animDirection === 'next') {
             currentImage.classList.add('slide-out-left-mobile');
             nextImage.classList.add('slide-in-right-mobile');
@@ -180,7 +209,6 @@ function animateImages(prevIndex, newIndex, direction) {
             nextImage.classList.add('slide-in-left-mobile');
         }
     } else {
-        // Десктопная анимация
         if (animDirection === 'next') {
             currentImage.classList.add('slide-out-top-pc');
             nextImage.classList.add('slide-in-bottom-pc');
@@ -192,7 +220,6 @@ function animateImages(prevIndex, newIndex, direction) {
 
     nextImage.classList.add('active');
 
-    // Убираем классы анимации после завершения
     setTimeout(() => {
         currentImage.classList.remove(
             'slide-out-top-pc', 'slide-out-bottom-pc',
@@ -214,11 +241,16 @@ function updateContent() {
     contentButton.textContent = section.buttonText;
     contentButton.href = section.link;
 
-    buttons.forEach((btn, index) => {
-        btn.classList.toggle('active', index === activeIndex);
+    // Очищаем все активные классы перед установкой нового
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
     });
 
-    // Анимация появления контента
+    // Активируем только текущую кнопку
+    if (buttons[activeIndex]) {
+        buttons[activeIndex].classList.add('active');
+    }
+
     contentTitle.classList.remove('active');
     contentText.classList.remove('active');
     contentButton.classList.remove('active');
@@ -239,7 +271,6 @@ function scrollToSection(index) {
     const windowHeight = window.innerHeight;
     const sectionHeight = scrollSection.offsetHeight / MATERIAL_SECTIONS.length;
 
-    // Позиционируем так, чтобы секция была по центру экрана
     const targetScroll = scrollSection.offsetTop + (sectionHeight * index) + (sectionHeight / 2) - (windowHeight / 2);
 
     window.scrollTo({
@@ -257,9 +288,14 @@ function updateUI(withAnimation = true) {
     contentButton.textContent = section.buttonText;
     contentButton.href = section.link;
 
-    buttons.forEach((btn, index) => {
-        btn.classList.toggle('active', index === activeIndex);
+    // Всегда очищаем все кнопки перед установкой активной
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
     });
+
+    if (buttons[activeIndex]) {
+        buttons[activeIndex].classList.add('active');
+    }
 
     if (withAnimation) {
         contentTitle.classList.remove('active');
@@ -282,10 +318,8 @@ function updateUI(withAnimation = true) {
     }
 }
 
-// Инициализация
 initUI();
 
-// Ресайз
 window.addEventListener('resize', () => {
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
