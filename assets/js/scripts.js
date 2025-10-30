@@ -11,12 +11,33 @@ let images = [];
 let activeIndex = 0;
 let isAnimating = false;
 let scrollTimeout;
-let isInitialLoad = true; // Добавляем флаг первоначальной загрузки
+let isMobile = window.innerWidth <= 990;
 
 function initUI() {
     sidebar.innerHTML = '';
     imageArea.innerHTML = '';
 
+    // Определяем активный индекс только для десктопа
+    if (!isMobile) {
+        const scrollY = window.scrollY;
+        const scrollSectionRect = scrollSection.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        if (scrollSectionRect.top <= 0 && scrollSectionRect.bottom >= 0) {
+            const scrollStart = scrollSection.offsetTop;
+            const scrollEnd = scrollStart + scrollSection.offsetHeight - windowHeight;
+            const scrollProgress = Math.max(0, Math.min(1, (scrollY - scrollStart) / (scrollEnd - scrollStart)));
+
+            let initialIndex = Math.floor(scrollProgress * MATERIAL_SECTIONS.length);
+            initialIndex = Math.max(0, Math.min(initialIndex, MATERIAL_SECTIONS.length - 1));
+
+            if (initialIndex !== 0) {
+                activeIndex = initialIndex;
+            }
+        }
+    }
+
+    // Создаем интерфейс
     MATERIAL_SECTIONS.forEach((section, i) => {
         const btn = document.createElement('button');
         const span = document.createElement('span');
@@ -42,7 +63,7 @@ function initUI() {
         img.alt = section.title;
         img.dataset.index = i;
 
-        if (i === 0) {
+        if (i === activeIndex) {
             img.classList.add('active');
         }
 
@@ -52,46 +73,30 @@ function initUI() {
 
     buttons = Array.from(sidebar.querySelectorAll('button'));
 
-    // Убираем автоматическую активацию первой кнопки при загрузке
-    if (isInitialLoad) {
-        // Определяем активную секцию на основе скролла при загрузке
-        setTimeout(() => {
-            const scrollY = window.scrollY;
-            const scrollSectionRect = scrollSection.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
-
-            if (scrollSectionRect.top <= 0 && scrollSectionRect.bottom >= 0) {
-                // Если скролл-секция в зоне видимости, определяем активную секцию по скроллу
-                const scrollStart = scrollSection.offsetTop;
-                const scrollEnd = scrollStart + scrollSection.offsetHeight - windowHeight;
-                const scrollProgress = (scrollY - scrollStart) / (scrollEnd - scrollStart);
-
-                let initialIndex = Math.floor(scrollProgress * MATERIAL_SECTIONS.length);
-                initialIndex = Math.max(0, Math.min(initialIndex, MATERIAL_SECTIONS.length - 1));
-
-                if (initialIndex !== 0) {
-                    activeIndex = initialIndex;
-                    updateUI(false);
-                }
-            }
-
-            isInitialLoad = false;
-        }, 100);
-    }
-
+    // Сразу устанавливаем правильное состояние
     updateUI(false);
 
-    initScrollTracking();
+    // Инициализируем навигацию в зависимости от устройства
+    if (isMobile) {
+        initMobileNavigation();
+    } else {
+        initDesktopNavigation();
+    }
 }
 
-function initScrollTracking() {
+function initMobileNavigation() {
+    console.log('Mobile: Scroll disabled, tabs only');
+    // На мобильных отключаем скролл-трекинг
+    // Оставляем только клики по табам
+}
+
+function initDesktopNavigation() {
+    console.log('Desktop: Scroll enabled');
+
     let lastScrollY = window.scrollY;
     let ticking = false;
 
     const handleScroll = () => {
-        // Игнорируем скролл во время первоначальной загрузки
-        if (isInitialLoad) return;
-
         const currentScrollY = window.scrollY;
         const scrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
         lastScrollY = currentScrollY;
@@ -105,23 +110,11 @@ function initScrollTracking() {
         }
     };
 
-    if ('ontouchstart' in window) {
-        let mobileScrollTimeout;
-        window.addEventListener('scroll', () => {
-            if (!mobileScrollTimeout) {
-                mobileScrollTimeout = setTimeout(() => {
-                    handleScroll();
-                    mobileScrollTimeout = null;
-                }, 70);
-            }
-        }, { passive: true });
-    } else {
-        window.addEventListener('scroll', handleScroll, { passive: true });
-    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
 }
 
 function updateActiveSection(scrollY, direction) {
-    if (isAnimating) return;
+    if (isAnimating || isMobile) return; // На мобильных не обрабатываем скролл
 
     const scrollSectionRect = scrollSection.getBoundingClientRect();
     const windowHeight = window.innerHeight;
@@ -139,7 +132,7 @@ function updateActiveSection(scrollY, direction) {
     let newIndex = Math.floor(scrollProgress * MATERIAL_SECTIONS.length);
     newIndex = Math.max(0, Math.min(newIndex, MATERIAL_SECTIONS.length - 1));
 
-    const delay = ('ontouchstart' in window) ? 80 : 50;
+    const delay = 50;
 
     if (newIndex !== activeIndex) {
         clearTimeout(scrollTimeout);
@@ -174,7 +167,11 @@ function handleButtonClick(newIndex) {
     const direction = newIndex > previousIndex ? 'next' : 'prev';
     animateImages(previousIndex, activeIndex, direction);
     updateContent();
-    scrollToSection(activeIndex);
+
+    // На мобильных не скроллим страницу
+    if (!isMobile) {
+        scrollToSection(activeIndex);
+    }
 
     setTimeout(() => {
         isAnimating = false;
@@ -200,7 +197,8 @@ function animateImages(prevIndex, newIndex, direction) {
     const isNext = newIndex > prevIndex;
     const animDirection = isNext ? 'next' : 'prev';
 
-    if (window.innerWidth <= 990) {
+    if (isMobile) {
+        // На мобильных простая смена без сложных анимаций
         if (animDirection === 'next') {
             currentImage.classList.add('slide-out-left-mobile');
             nextImage.classList.add('slide-in-right-mobile');
@@ -209,6 +207,7 @@ function animateImages(prevIndex, newIndex, direction) {
             nextImage.classList.add('slide-in-left-mobile');
         }
     } else {
+        // На десктопе полноценные анимации
         if (animDirection === 'next') {
             currentImage.classList.add('slide-out-top-pc');
             nextImage.classList.add('slide-in-bottom-pc');
@@ -241,12 +240,10 @@ function updateContent() {
     contentButton.textContent = section.buttonText;
     contentButton.href = section.link;
 
-    // Очищаем все активные классы перед установкой нового
     buttons.forEach(btn => {
         btn.classList.remove('active');
     });
 
-    // Активируем только текущую кнопку
     if (buttons[activeIndex]) {
         buttons[activeIndex].classList.add('active');
     }
@@ -267,6 +264,8 @@ function updateContent() {
 }
 
 function scrollToSection(index) {
+    if (isMobile) return; // На мобильных не скроллим
+
     const scrollSectionRect = scrollSection.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const sectionHeight = scrollSection.offsetHeight / MATERIAL_SECTIONS.length;
@@ -288,7 +287,6 @@ function updateUI(withAnimation = true) {
     contentButton.textContent = section.buttonText;
     contentButton.href = section.link;
 
-    // Всегда очищаем все кнопки перед установкой активной
     buttons.forEach(btn => {
         btn.classList.remove('active');
     });
@@ -318,10 +316,26 @@ function updateUI(withAnimation = true) {
     }
 }
 
+// Инициализация
 initUI();
 
+// Обработчик ресайза
 window.addEventListener('resize', () => {
     clearTimeout(scrollTimeout);
+
+    const newIsMobile = window.innerWidth <= 990;
+
+    // Если изменился тип устройства, переинициализируем
+    if (newIsMobile !== isMobile) {
+        isMobile = newIsMobile;
+        // Перезапускаем навигацию при смене устройства
+        if (isMobile) {
+            initMobileNavigation();
+        } else {
+            initDesktopNavigation();
+        }
+    }
+
     scrollTimeout = setTimeout(() => {
         updateUI(false);
     }, 100);
